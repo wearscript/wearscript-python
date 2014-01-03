@@ -18,12 +18,12 @@ The easiest way to install with needed library dependencies is with pip
 
 ### Stable ###
 
-    ``bash
+    ```bash
     pip install wearscript
-    ``
+    ```
 
 ### Development ###
 
-    ``bash
+    ```bash
     pip install -e git+https://github.com/OpenShades/wearscript-python/#egg=wearscript
-    ``
+    ```
