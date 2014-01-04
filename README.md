@@ -5,6 +5,7 @@
 
 Various hooks and command line tools for interacting with wearscript in Python.
 
+Also includes 'wearscript' command line client for testing and shell-hackery.
 
 ## Requirements ##
 
