@@ -41,20 +41,20 @@ variable.
 
 Here is one way to set that up:
 
-    1. Visit a wearscript server (Demo: https://api.picar.us/wearscriptdev/)
-    2. Accept Google Authentication Permissions
-    3. Under endpoints, click QR.
-    4. Scan code via "Ok Glass, Setup Wearscript"
-    5. Say "OK Glass, Start Wearscript" and it should say "Connected"
-    6. Under endpoints, click "Client Endpoint" and copy URL
-    7. Put this in your .bashrc and source it:
+1. Visit a wearscript server (Demo: https://api.picar.us/wearscriptdev/)
+2. Accept Google Authentication Permissions
+3. Under endpoints, click QR.
+4. Scan code via "Ok Glass, Setup Wearscript"
+5. Say "OK Glass, Start Wearscript" and it should say "Connected"
+6. Under endpoints, click "Client Endpoint" and copy URL
+7. Put this in your .bashrc and source it:
 
-        ```bash
-        echo "WEARSCRIPT_ENDPOINT=wss://api.picar.us/wearscriptdev/ws/client/iHFr9Yuy9Rl9hnsr" >> ~/.bash_rc
-        source .bashrc
-        ```
-    8. Test sending yourself a card via the wearscript command line client
+    ```bash
+    echo "WEARSCRIPT_ENDPOINT=wss://api.picar.us/wearscriptdev/ws/client/iHFr9Yuy9Rl9hnsr" >> ~/.bash_rc
+    source .bashrc
+    ```
+8. Test sending yourself a card via the wearscript command line client
 
-        ```bash
-        wearscript --card "I am connected :D"
-        ```
+    ```bash
+    wearscript --card "I am connected :D"
+    ```
