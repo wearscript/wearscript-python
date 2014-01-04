@@ -58,3 +58,29 @@ Here is one way to set that up:
     ```bash
     wearscript --card "I am connected :D"
     ```
+
+Now try writing a basic hello world in python:
+
+```python
+import wearscript
+
+wearscript.say('Hello World')
+```
+
+Next, perhaps try asking glass for some gyroscope output:
+
+
+```python
+import wearscript
+
+for item in wearscript.sensor('gyroscope'):
+  print(item)
+```
+
+And feel free to explore the CLI:
+
+``bash
+wearscript --help
+```
+
+
