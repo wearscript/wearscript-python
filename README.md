@@ -1,9 +1,9 @@
-# Wearscript for Python #
+# WearScript for Python #
 <http://github.com/OpenShades/wearscript>
 
 ## About ##
 
-Various hooks and command line tools for interacting with wearscript in Python.
+Various hooks and command line tools for interacting with WearScript in Python.
 
 Also includes 'wearscript' command line client for testing and shell-hackery.
 
@@ -12,7 +12,7 @@ Also includes 'wearscript' command line client for testing and shell-hackery.
   * libevent-dev 
   * pip
   * python 2.* ( Dependant libraries don't support 3 yet )
-  * A running wearscript server to connect to
+  * A running WearScript server to connect to
   * At least one connected Glass
 
 ## Installation ##
@@ -41,7 +41,7 @@ variable.
 
 Here is one way to set that up:
 
-1. Visit a wearscript server (Demo: https://api.picar.us/wearscriptdev/)
+1. Visit a WearScript server (Demo: https://api.picar.us/wearscriptdev/)
 2. Accept Google Authentication Permissions
 3. Under endpoints, click QR.
 4. Scan code via "Ok Glass, Setup Wearscript"
@@ -53,7 +53,7 @@ Here is one way to set that up:
     echo "WEARSCRIPT_ENDPOINT=wss://api.picar.us/wearscriptdev/ws/client/iHFr9Yuy9Rl9hnsr" >> ~/.bashrc
     source .bashrc
     ```
-8. Test sending yourself a card via the wearscript command line client
+8. Test sending yourself a card via the WearScript command line client
 
     ```bash
     wearscript --card "I am connected :D"
