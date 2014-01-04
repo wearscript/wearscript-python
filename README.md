@@ -50,7 +50,7 @@ Here is one way to set that up:
 7. Put this in your .bashrc and source it:
 
     ```bash
-    echo "WEARSCRIPT_ENDPOINT=wss://api.picar.us/wearscriptdev/ws/client/iHFr9Yuy9Rl9hnsr" >> ~/.bash_rc
+    echo "WEARSCRIPT_ENDPOINT=wss://api.picar.us/wearscriptdev/ws/client/iHFr9Yuy9Rl9hnsr" >> ~/.bashrc
     source .bashrc
     ```
 8. Test sending yourself a card via the wearscript command line client
