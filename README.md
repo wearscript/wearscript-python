@@ -79,7 +79,7 @@ for item in wearscript.sensor('gyroscope'):
 
 And feel free to explore the CLI:
 
-``bash
+```bash
 wearscript --help
 ```
 
