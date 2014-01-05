@@ -17,7 +17,9 @@ Also includes 'wearscript' command line client for testing and shell-hackery.
 
 ## Installation ##
 
-The easiest way to install with needed library dependencies is with pip
+The easiest way to install with needed library dependencies is with pip.
+
+(Note: If you have both python 2 and 3 installed, use pip2)
 
 ### Stable ###
 
@@ -64,5 +66,3 @@ From here, feel free to explore the CLI:
 ```bash
 wearscript --help
 ```
-
-

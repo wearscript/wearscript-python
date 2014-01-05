@@ -2,6 +2,7 @@ import gevent.monkey
 gevent.monkey.patch_all()
 from geventwebsocket.handler import WebSocketHandler
 from gevent import pywsgi
+import os
 import websocket
 import logging
 import msgpack
@@ -38,7 +39,7 @@ class WebSocketClientConnection(object):
 
 
 def websocket_server(callback, websocket_port, **kw):
-
+    
     def websocket_app(environ, start_response):
         logging.info('Glass connected')
         if environ["PATH_INFO"] == '/':
@@ -51,4 +52,6 @@ def websocket_server(callback, websocket_port, **kw):
 
 
 def websocket_client_factory(callback, client_endpoint, **kw):
+    if not client_endpoint:
+        client_endpoint = os.environ['WEARSCRIPT_ENDPOINT']
     callback(WebSocketClientConnection(websocket.create_connection(client_endpoint)), **kw)
