@@ -1,4 +1,4 @@
-from socket import websocket_client_factory,websocket_server 
+from socket import websocket_client_factory, websocket_server 
 
 def parse(callback, parser):
     subparsers = parser.add_subparsers()
