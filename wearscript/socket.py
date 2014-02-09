@@ -58,7 +58,22 @@ class WearScriptConnection(object):
         return self
 
     def exists(self, channel):
-        return channel in self.external_channels
+        if channel == 'subscriptions':
+            return True
+        return self._exists(channel, self.external_channels) is not None
+
+    def _exists(self, channel, container):
+        channel_cur = ''
+        parts = channel.split(':')
+        for x in parts:
+            if channel_cur in container:
+                return channel_cur
+            if channel_cur == '':
+                channel_cur += x
+            else:
+                channel_cur += ':' + x
+        if channel_cur in container:
+            return channel_cur        
 
     def channel(self, *args):
         return ':'.join(*args)
@@ -96,10 +111,13 @@ class WearScriptConnection(object):
             except WebSocketException:
                 self.connected = False
                 break
+            print(d)
             if d[0] == 'subscriptions':
                 self._set_device_channels(d[1], d[2])
             try:
-                self._channels_internal[d[0]](*d)
+                key = self._exists(d[0], self._channels_internal)
+                if key is not None:
+                    self._channels_internal[key](*d)
             except KeyError:
                 pass
 
