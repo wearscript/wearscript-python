@@ -121,6 +121,36 @@ class WearScriptConnection(object):
             except KeyError:
                 pass
 
+    def subscribe_test_handler(self):
+        def glass_cb(*data):
+            command = data[1]
+            if command == 'subscribe':
+                self.subscribe(data[2], glass_cb)
+            elif command == 'unsubscribe':
+                self.unsubscribe(data[2])
+            elif command == 'channelsInternal':
+                self.publish(data[2], self.channels_internal)
+            elif command == 'channelsExternal':
+                self.publish(data[2], self.channels_external)
+            elif command == 'group':
+                self.publish(data[2], self.group)
+            elif command == 'device':
+                self.publish(data[2], self.device)
+            elif command == 'groupDevice':
+                self.publish(data[2], self.group_device)
+            elif command == 'exists':
+                self.publish(data[2], self.exists(data[3]))
+            elif command == 'publish':
+                self.publish(data[2], *data[3:])
+            elif command == 'channel':
+                self.publish(data[2], self.channel(*data[3:]))
+            elif command == 'subchannel':
+                self.publish(data[2], self.subchannel(data[3]))
+            elif command == 'ackchannel':
+                self.publish(data[2], self.ackchannel(data[3]))
+        self.subscribe('test:' + self._group_device, glass_cb)
+
+
 class WebSocketServerConnection(WearScriptConnection):
 
     def __init__(self, ws):
