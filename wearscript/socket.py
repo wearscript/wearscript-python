@@ -52,7 +52,7 @@ class WearScriptConnection(object):
     def publish(self, channel, *args):
         if not self.connected:
             raise WebSocketException
-        if channel not in self.external_channels:
+        if not self.exists(channel):
             return self
         self.send(channel, *args)
         return self
@@ -111,7 +111,7 @@ class WearScriptConnection(object):
             except WebSocketException:
                 self.connected = False
                 break
-            print(d)
+            print('Got [%s]' % d[0])
             if d[0] == 'subscriptions':
                 self._set_device_channels(d[1], d[2])
             try:
