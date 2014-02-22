@@ -7,6 +7,7 @@ import websocket
 import logging
 import msgpack
 import random
+import sys
 
 class WebSocketException(Exception):
     """Generic error"""
@@ -21,6 +22,7 @@ class WearScriptConnection(object):
         self._device = device if device else str(random.randint(0, 99999))
         self._group_device = '%s:%s' % (self._group, self._device)
         self.connected = True
+        self._lock = gevent.lock.RLock()
         self._loop_greenlet = gevent.spawn(self._loop)
         # TODO(brandyn): Needs onConnect, onDisconnect callbacks
 
@@ -30,23 +32,31 @@ class WearScriptConnection(object):
     def _reset_external_channels(self):
         self.device_to_channels = {}  # [device] = list of channels it listens to
         self.external_channels = set()
-    
+
     def _set_device_channels(self, device, channels):
+        self._lock.acquire()
         self.device_to_channels[device] = channels
         self.external_channels = set(sum(self.device_to_channels.values(), []))
+        self._lock.release()
 
     def subscribe(self, channel, callback):
-        if channel not in self._channels_internal:
-            self._channels_internal[channel] = callback
-            self.send('subscriptions', self.group_device, list(self._channels_internal))
-        else:
-            self._channels_internal[channel] = callback
+        self._lock.acquire()
+        publish = channel not in self._channels_internal
+        self._channels_internal[channel] = callback
+        channels = list(self._channels_internal)
+        self._lock.release()
+        if publish:
+            self.send('subscriptions', self.group_device, channels)
         return self
 
     def unsubscribe(self, channel):
-        if channel in self._channels_internal:
-            del self._channels_internal[channel]
-            self.send('subscriptions', self.group_device, list(self._channels_internal))
+        self._lock.acquire()
+        publish = channel in self._channels_internal
+        del self._channels_internal[channel]
+        channels = list(self._channels_internal)
+        self._lock.release()
+        if publish:
+            self.send('subscriptions', self.group_device, channels)
         return self
 
     def publish(self, channel, *args):
@@ -63,17 +73,17 @@ class WearScriptConnection(object):
         return self._exists(channel, self.external_channels) is not None
 
     def _exists(self, channel, container):
-        channel_cur = ''
+        channel_cur = None
         parts = channel.split(':')
         for x in parts:
             if channel_cur in container:
                 return channel_cur
-            if channel_cur == '':
-                channel_cur += x
+            if channel_cur is None:
+                channel_cur = x
             else:
                 channel_cur += ':' + x
         if channel_cur in container:
-            return channel_cur        
+            return channel_cur
 
     def channel(self, *args):
         return ':'.join(*args)
@@ -110,19 +120,29 @@ class WearScriptConnection(object):
                 d = self.receive()
             except WebSocketException:
                 self.connected = False
+                # TODO(brandyn): Here we should reconnect
+                print('-------------------Disconnected!')
                 break
             print('Got [%s]' % d[0])
             if d[0] == 'subscriptions':
                 self._set_device_channels(d[1], d[2])
             try:
                 key = self._exists(d[0], self._channels_internal)
-                if key is not None:
-                    self._channels_internal[key](*d)
+                callback = self._channels_internal.get(key)
             except KeyError:
                 pass
+            if callback:
+                try:
+                    callback(*d)
+                except (SystemExit, WebSocketException):
+                    raise
+                except:
+                    print('Uncaught Exception: ' + str(sys.exc_info()))
 
     def subscribe_test_handler(self):
+        print('Test Subscribing')
         def glass_cb(*data):
+            print('Test Data: %r' % (data,))
             command = data[1]
             if command == 'subscribe':
                 self.subscribe(data[2], glass_cb)
@@ -180,10 +200,11 @@ class WebSocketClientConnection(WearScriptConnection):
         try:
             return msgpack.loads(self.ws.recv())
         except websocket.WebSocketConnectionClosedException:
-            raise WebSocketException            
+            raise WebSocketException
+
 
 def websocket_server(callback, websocket_port, **kw):
-    
+
     def websocket_app(environ, start_response):
         logging.info('Glass connected')
         if environ["PATH_INFO"] == '/':
