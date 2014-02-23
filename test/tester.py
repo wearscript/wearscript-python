@@ -13,9 +13,10 @@ import sys
 
 SLEEP = .0
 
+
 class Device(object):
 
-    def __init__(self, ws, test_channel, group_device):
+    def __init__(self, ws, test_channel, group_device, max_channels=5):
         self.ws = ws
         self.group_device_this = self.ws.group_device
         self.prefix = self.rand()
@@ -25,15 +26,16 @@ class Device(object):
         self._group, self._device = group_device.split(':', 1)
         self._internal_channels_subscription = set([test_channel])  # Reported by remote
         print((self._group, self._device))
+        self.test_channel = test_channel
         self.expected_responses = []
         self._external_channels.append(self.response_channel)
         self.ws.subscribe(self.response_channel, self.handle)
+        self.max_channels = max_channels
         time.sleep(SLEEP)
 
     def _test_channel(self):
         test_channel = random.choice(list(self._internal_channels_subscription.intersection(self._internal_channels)))
-        test_channel_parts = test_channel.split(':')
-        return ':'.join(test_channel_parts[:random.randint(1, len(test_channel_parts))])
+        return self._chan_suffix(test_channel, 0)
 
     def rand(self):
         return base64.urlsafe_b64encode(os.urandom(6))
@@ -79,6 +81,8 @@ class Device(object):
         self._publish(*data_out)
 
     def subscribe(self):
+        if len(self._internal_channels) >= self.max_channels:
+            return
         chan = self.chan()
         self._internal_channels.append(chan)
         self._publish(self._test_channel(), 'subscribe', chan)
@@ -91,6 +95,8 @@ class Device(object):
                        self.exists])()
 
     def subscribe_this(self):
+        if len(self._external_channels) >= self.max_channels:
+            return
         chan = self.chan()
         self._external_channels.append(chan)
         self.ws.subscribe(chan, self.handle)
@@ -105,9 +111,11 @@ class Device(object):
         self.ws.unsubscribe(removed_channel)
 
     def unsubscribe(self):
-        if len(self._internal_channels) > 1:
-            random.shuffle(self._internal_channels)
-            chan = self._internal_channels.pop()
+        internal_channels = list(self._internal_channels_subscription.intersection(self._internal_channels) - set([self.test_channel]))
+        if len(internal_channels) > 1:
+            random.shuffle(internal_channels)
+            chan = internal_channels.pop()
+            self._internal_channels = [x for x in self._internal_channels if x != chan]
             self._publish(self._test_channel(), 'unsubscribe', chan)
 
     def channels_internal(self):
@@ -189,11 +197,13 @@ if __name__ == '__main__':
         def subscriptions(*data):
             print(data)
             for x in sorted(data[2]):
-                if x.startswith('test:') and data[1] not in devices:
-                    print('Making device: %s Channel: %s' % (data[1], x))
-                    devices[data[1]] = Device(ws, x, data[1])
-                    break
-            devices[data[1]].subscriptions(*data)
+                if x.startswith('test:'):
+                    if data[1] not in devices:
+                        print('Making device: %s Channel: %s' % (data[1], x))
+                        devices[data[1]] = Device(ws, x, data[1])
+                        break
+                    else:
+                        devices[data[1]].subscriptions(*data)
         ws.subscribe('subscriptions', subscriptions)
         while 1:
             for device in devices.values():
