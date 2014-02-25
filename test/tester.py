@@ -10,6 +10,7 @@ import sys
 # Go server didn't send updated device list
 
 # TODO: Test onConnect, onDisconnect
+# TODO: Make publish produce non string args
 
 SLEEP = .0
 
@@ -197,7 +198,7 @@ if __name__ == '__main__':
         def subscriptions(*data):
             print(data)
             for x in sorted(data[2]):
-                if x.startswith('test:'):
+                if x.startswith('test:glass'):
                     if data[1] not in devices:
                         print('Making device: %s Channel: %s' % (data[1], x))
                         devices[data[1]] = Device(ws, x, data[1])

@@ -23,7 +23,6 @@ class WearScriptConnection(object):
         self._group_device = '%s:%s' % (self._group, self._device)
         self.connected = True
         self._lock = gevent.lock.RLock()
-        self._loop_greenlet = gevent.spawn(self._loop)
         # TODO(brandyn): Needs onConnect, onDisconnect callbacks
 
     def _reset_channels_internal(self):
@@ -94,6 +93,31 @@ class WearScriptConnection(object):
     def ackchannel(self, channel):
         return ':'.join([channel, 'ACK'])
 
+    def handler_loop(self):
+        while 1:
+            try:
+                d = self.receive()
+            except WebSocketException:
+                self.connected = False
+                # TODO(brandyn): Here we should reconnect
+                print('Disconnected!')
+                break
+            print('Got [%s]' % d[0])
+            if d[0] == 'subscriptions':
+                self._set_device_channels(d[1], d[2])
+            try:
+                key = self._exists(d[0], self._channels_internal)
+                callback = self._channels_internal.get(key)
+            except KeyError:
+                pass
+            if callback:
+                try:
+                    callback(*d)
+                except (SystemExit, WebSocketException):
+                    raise
+                except:
+                    print('Uncaught Exception: ' + str(sys.exc_info()))
+
     @property
     def channels_external(self):
         return self.device_to_channels
@@ -114,33 +138,9 @@ class WearScriptConnection(object):
     def group_device(self):
         return self._group_device
 
-    def _loop(self):
-        while 1:
-            try:
-                d = self.receive()
-            except WebSocketException:
-                self.connected = False
-                # TODO(brandyn): Here we should reconnect
-                print('-------------------Disconnected!')
-                break
-            print('Got [%s]' % d[0])
-            if d[0] == 'subscriptions':
-                self._set_device_channels(d[1], d[2])
-            try:
-                key = self._exists(d[0], self._channels_internal)
-                callback = self._channels_internal.get(key)
-            except KeyError:
-                pass
-            if callback:
-                try:
-                    callback(*d)
-                except (SystemExit, WebSocketException):
-                    raise
-                except:
-                    print('Uncaught Exception: ' + str(sys.exc_info()))
-
     def subscribe_test_handler(self):
         print('Test Subscribing')
+
         def glass_cb(*data):
             print('Test Data: %r' % (data,))
             command = data[1]
