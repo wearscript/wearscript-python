@@ -210,7 +210,6 @@ def websocket_server(callback, websocket_port, **kw):
         if environ["PATH_INFO"] == '/':
             ws = environ["wsgi.websocket"]
             callback(WebSocketServerConnection(ws), **kw)
-            wsgi_server.stop()
     wsgi_server = pywsgi.WSGIServer(("", websocket_port), websocket_app,
                                     handler_class=WebSocketHandler)
     wsgi_server.serve_forever()
