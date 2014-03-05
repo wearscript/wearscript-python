@@ -5,6 +5,7 @@ import random
 import argparse
 import time
 import sys
+import gevent
 
 # Bugs
 # Go server didn't send updated device list
@@ -68,6 +69,7 @@ class Device(object):
             print(dir(traceback))
             print('Uncaught Exception: ' + str(name))
             sys.exit(1)
+        self.random()
 
     def publish(self):
         chan = random.choice(self._external_channels)
@@ -198,7 +200,7 @@ if __name__ == '__main__':
         def subscriptions(*data):
             print(data)
             for x in sorted(data[2]):
-                if x.startswith('test:glass'):
+                if x.startswith('test:'):
                     if data[1] not in devices:
                         print('Making device: %s Channel: %s' % (data[1], x))
                         devices[data[1]] = Device(ws, x, data[1])
@@ -206,8 +208,13 @@ if __name__ == '__main__':
                     else:
                         devices[data[1]].subscriptions(*data)
         ws.subscribe('subscriptions', subscriptions)
-        while 1:
-            for device in devices.values():
-                device.random()
-            time.sleep(SLEEP)
+        
+        def loop():
+            while 1:
+                for device in devices.values():
+                    device.random()
+                gevent.sleep(1)
+
+        gevent.spawn(loop)
+        ws.handler_loop()
     wearscript.parse(callback, argparse.ArgumentParser())
